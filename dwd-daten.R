@@ -119,21 +119,28 @@ yres <- 0.01
 
 tt %<>% 
   mutate(
-  # rename to use in function later
-  x = year,
-  y = temperature,
-  # generate point coordinates for line end
-  x2 = lead(x),
-  y2 = lead(y)
+    # rename to use in function later
+    x = year,
+    y = temperature,
+    # generate point coordinates for line end
+    x2 = lead(x),
+    y2 = lead(y)
   ) %>% 
   # remove last row from group
   filter(!row_number() == n()) %>% 
   # get high-resolution versions of the inter-point data
   rowwise() %>% 
-  mutate(
-    y.hr = list(seq(y, y2, yres*sign(y2-y))),
-    x.hr = list(seq(x, x2, length.out = length(y.hr)))
-  )
+  do(
+    data.frame(
+      year = .$year,
+      month = .$month,
+      region = .$region,
+      temperature = .$temperature,
+      x = .$x,
+      x2 = .$x2,
+      y.hr = seq(.$y, .$y2 ,yres*sign(.$y2-.$y))
+    ) %>% mutate(x.hr = seq(min(x), min(x2), length.out = nrow(.)))
+  ) 
 
 
 
